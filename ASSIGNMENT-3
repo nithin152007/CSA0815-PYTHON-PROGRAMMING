@@ -1,1 +1,48 @@
+merged = {}
 
+
+def norm_phone(phone):
+    digits = ''.join(ch for ch in phone if ch.isdigit())
+
+    if len(digits) == 12 and digits.startswith("91"):
+        digits = digits[2:]
+
+    return digits
+
+
+def add_contact(name, phone, email):
+    key = norm_phone(phone)
+
+    if not key:
+        return
+
+    if key not in merged:
+        merged[key] = {
+            "names": set(),
+            "phones": set(),
+            "emails": set()
+        }
+
+    if name and name.strip():
+        merged[key]["names"].add(name.lower().strip())
+
+    if phone and phone.strip():
+        merged[key]["phones"].add(phone.strip())
+
+    if email and email.strip():
+        merged[key]["emails"].add(email.lower().strip())
+
+
+contacts = [
+    ("Dr. Ravi", "+91 98400 12345", "ravi@gmail.com"),
+    ("ravi kumar", "9840012345", "ravi1@gmail.com"),
+    ("Anu", "9876543210", "anu@gmail.com")
+]
+
+
+for name, phone, email in contacts:
+    add_contact(name, phone, email)
+
+
+for number, details in merged.items():
+    print(number, details)
