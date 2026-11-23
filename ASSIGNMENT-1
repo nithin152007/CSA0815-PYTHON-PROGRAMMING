@@ -1,1 +1,37 @@
+import time
 
+# We will use a smaller number for the "simple" version so it runs instantly
+# but still shows the difference.
+count = 10000
+items = [f"Item{i}:Rs{i % 50}" for i in range(count)]
+
+
+def build_plus(parts):
+    """The 'Slow' way using +="""
+    text = ""
+    for p in parts:
+        text += p + ";"
+    return text
+
+
+def build_join(parts):
+    """The 'Fast' way using .join()"""
+    return ";".join(parts) + ";"
+
+
+# Measure the slow way
+start = time.perf_counter()
+a = build_plus(items)
+t_plus = time.perf_counter() - start
+
+
+# Measure the fast way
+start = time.perf_counter()
+b = build_join(items)
+t_join = time.perf_counter() - start
+
+
+print(f"Comparison for {count} items:")
+print(f"Results match: {a == b}")
+print(f"Time with += : {t_plus:.6f} s")
+print(f"Time with join: {t_join:.6f} s")
