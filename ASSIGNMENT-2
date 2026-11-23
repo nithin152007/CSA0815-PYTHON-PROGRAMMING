@@ -1,1 +1,243 @@
 
+from functools import lru_cache
+import sys
+
+
+# --------------------------------------------------
+# 1. ORIGINAL RECURSIVE METHOD
+# --------------------------------------------------
+
+def ways_recursive(n):
+    """
+    Calculates the number of ways to climb n steps
+    using either one step or two steps at a time.
+    """
+
+    if n <= 1:
+        return 1
+
+    return ways_recursive(n - 1) + ways_recursive(n - 2)
+
+
+# --------------------------------------------------
+# 2. RECURSION WITH FUNCTION CALL COUNTER
+# --------------------------------------------------
+
+def recursive_with_count(n):
+    """
+    Calculates the result using plain recursion
+    and counts the total function calls.
+    """
+
+    calls = 0
+
+    def calculate(steps):
+        nonlocal calls
+        calls += 1
+
+        if steps <= 1:
+            return 1
+
+        return calculate(steps - 1) + calculate(steps - 2)
+
+    result = calculate(n)
+
+    return result, calls
+
+
+# --------------------------------------------------
+# 3. MEMOISATION METHOD
+# --------------------------------------------------
+
+@lru_cache(maxsize=None)
+def ways_memo(n):
+    """
+    Stores previously calculated results
+    to avoid repeated calculations.
+    """
+
+    if n <= 1:
+        return 1
+
+    return ways_memo(n - 1) + ways_memo(n - 2)
+
+
+# --------------------------------------------------
+# 4. ITERATIVE METHOD
+# --------------------------------------------------
+
+def ways_loop(n):
+    """
+    Calculates the number of ways using a loop.
+    It does not use recursion.
+    """
+
+    if n <= 1:
+        return 1
+
+    a = 1
+    b = 1
+
+    for i in range(2, n + 1):
+        a, b = b, a + b
+
+    return b
+
+
+# --------------------------------------------------
+# 5. VALIDATE THE INPUT
+# --------------------------------------------------
+
+def validate_input(n):
+
+    if not isinstance(n, int):
+        return False
+
+    if n < 0:
+        return False
+
+    return True
+
+
+# --------------------------------------------------
+# 6. COMPARE ALL THREE METHODS
+# --------------------------------------------------
+
+def compare_methods(n):
+
+    print("\n========== METHOD COMPARISON ==========")
+
+    # Plain recursion
+    if n <= 30:
+        recursive_result, calls = recursive_with_count(n)
+
+        print("\n1. Plain Recursion")
+        print("Number of steps:", n)
+        print("Result:", recursive_result)
+        print("Function calls:", calls)
+    else:
+        print("\n1. Plain Recursion")
+        print("Skipped for large input to avoid excessive execution time.")
+
+    # Memoisation
+    ways_memo.cache_clear()
+
+    print("\n2. Memoisation")
+
+    memo_result = ways_memo(n)
+    cache_details = ways_memo.cache_info()
+
+    print("Number of steps:", n)
+    print("Result:", memo_result)
+    print("Cache hits:", cache_details.hits)
+    print("Cache misses:", cache_details.misses)
+
+    # Iterative method
+    print("\n3. Iterative Method")
+
+    loop_result = ways_loop(n)
+
+    print("Number of steps:", n)
+    print("Result:", loop_result)
+
+    return memo_result, loop_result
+
+
+# --------------------------------------------------
+# 7. VALIDATE THE REDESIGNED PROGRAM
+# --------------------------------------------------
+
+def validate_program(n):
+
+    print("\n========== VALIDATION ==========")
+
+    ways_memo.cache_clear()
+
+    memo_result = ways_memo(n)
+    loop_result = ways_loop(n)
+
+    print("Memoisation Result:", memo_result)
+    print("Iterative Result:", loop_result)
+
+    if memo_result == loop_result:
+        print("Validation Successful")
+        print("Both methods produce the same result.")
+    else:
+        print("Validation Failed")
+
+    if n <= 30:
+        recursive_result = ways_recursive(n)
+
+        if recursive_result == memo_result:
+            print("Original and redesigned results are also equal.")
+        else:
+            print("Original and redesigned results are different.")
+
+
+# --------------------------------------------------
+# 8. CHECK PYTHON RECURSION LIMIT
+# --------------------------------------------------
+
+def check_recursion_limit():
+
+    print("\n========== RECURSION LIMIT ==========")
+
+    limit = sys.getrecursionlimit()
+
+    print("Current recursion limit:", limit)
+
+    print(
+        "Large recursive inputs may cause "
+        "a RecursionError."
+    )
+
+
+# --------------------------------------------------
+# 9. MAIN PROGRAM
+# --------------------------------------------------
+
+def main():
+
+    print("STAIRCASE PROBLEM")
+    print("--------------------------------")
+
+    print("A person can climb either one or two steps.")
+    print("Calculate the number of possible ways.")
+
+    try:
+        n = int(input("\nEnter the number of steps: "))
+
+        if not validate_input(n):
+            print("Please enter a non-negative integer.")
+            return
+
+        print("\n========== FINAL RESULT ==========")
+
+        ways_memo.cache_clear()
+
+        result = ways_memo(n)
+
+        print("Number of steps:", n)
+        print("Number of possible ways:", result)
+
+        compare_methods(n)
+
+        validate_program(n)
+
+        check_recursion_limit()
+
+    except ValueError:
+        print("Invalid input. Please enter an integer.")
+
+    except RecursionError:
+        print("Recursion limit reached.")
+        print("Use the iterative method for large inputs.")
+
+
+# --------------------------------------------------
+# 10. PROGRAM EXECUTION
+# --------------------------------------------------
+
+if __name__ == "__main__":
+    main()
+
