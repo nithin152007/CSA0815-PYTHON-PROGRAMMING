@@ -1,1 +1,141 @@
+import csv
+import os
 
+DEPARTMENTS = ["IT", "CSE", "ECE", "EEE", "MECH"]
+
+OUTPUT_DIR = "fest_output"
+
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+seen = set()
+valid_records = []
+event_records = {}
+errors = []
+
+
+def valid_email(email):
+    if email.count("@") != 1:
+        return False
+
+    name, domain = email.split("@")
+
+    return bool(name and "." in domain)
+
+
+def process_file(filename):
+    try:
+        with open(filename, "r", newline="", encoding="utf-8") as file:
+            reader = csv.reader(file)
+
+            for line_number, row in enumerate(reader, start=1):
+
+                if len(row) != 5:
+                    errors.append(
+                        f"{filename}, line {line_number}: Damaged record"
+                    )
+                    continue
+
+                reg, name, dept, email, events = [
+                    field.strip() for field in row
+                ]
+
+                if not all([reg, name, dept, email, events]):
+                    errors.append(
+                        f"{filename}, line {line_number}: Missing fields"
+                    )
+                    continue
+
+                if not valid_email(email):
+                    errors.append(
+                        f"{filename}, line {line_number}: Invalid email"
+                    )
+                    continue
+
+                if reg in seen:
+                    errors.append(
+                        f"{filename}, line {line_number}: Duplicate registration"
+                    )
+                    continue
+
+                seen.add(reg)
+
+                record = [reg, name, dept, email, events]
+                valid_records.append(record)
+
+                selected_events = events.split(";")
+
+                for event in selected_events:
+                    event = event.strip()
+
+                    if event:
+                        event_records.setdefault(event, []).append(record)
+
+    except FileNotFoundError:
+        errors.append(f"{filename}: File not found")
+
+    except PermissionError:
+        errors.append(f"{filename}: Permission denied")
+
+    except OSError as error:
+        errors.append(f"{filename}: {error}")
+
+
+def write_reports():
+
+    master_file = os.path.join(OUTPUT_DIR, "master_list.txt")
+
+    with open(master_file, "w", encoding="utf-8") as file:
+        file.write("MASTER REGISTRATION LIST\n\n")
+
+        for record in valid_records:
+            file.write(", ".join(record) + "\n")
+
+    for event, records in event_records.items():
+        event_file = os.path.join(
+            OUTPUT_DIR, f"{event}.txt"
+        )
+
+        with open(event_file, "w", encoding="utf-8") as file:
+            file.write(f"{event} PARTICIPANTS\n\n")
+
+            for record in records:
+                file.write(", ".join(record) + "\n")
+
+    summary_file = os.path.join(OUTPUT_DIR, "summary.txt")
+
+    with open(summary_file, "w", encoding="utf-8") as file:
+        file.write("COLLEGE FEST SUMMARY\n\n")
+        file.write(f"Total valid registrations: {len(valid_records)}\n")
+        file.write(f"Total events: {len(event_records)}\n")
+        file.write(f"Total errors: {len(errors)}\n\n")
+
+        file.write("Event-wise participants:\n")
+
+        for event, records in event_records.items():
+            file.write(f"{event}: {len(records)}\n")
+
+    error_file = os.path.join(OUTPUT_DIR, "error_log.txt")
+
+    with open(error_file, "w", encoding="utf-8") as file:
+        file.write("ERROR LOG\n\n")
+
+        for error in errors:
+            file.write(error + "\n")
+
+
+def main():
+
+    for department in DEPARTMENTS:
+        filename = department + ".csv"
+        process_file(filename)
+
+    write_reports()
+
+    print("Registration processing completed.")
+    print("Valid registrations:", len(valid_records))
+    print("Errors:", len(errors))
+    print("Output files saved in:", OUTPUT_DIR)
+
+
+if __name__ == "__main__":
+    main()
